@@ -4,8 +4,9 @@
 
 #include <iostream>
 
-#include <QSqlDatabase>
 #include <QFileDialog>
+#include <QMessageBox>
+#include <QSqlDatabase>
 #include <QSqlError>
 #include <QSqlQuery>
 
@@ -25,19 +26,19 @@ TimeTrackerConfigurationWidget::~TimeTrackerConfigurationWidget()
 
 void TimeTrackerConfigurationWidget::on_btnNewCompany_clicked()
 {
-//   QString fileName = QFileDialog::getSaveFileName(this, "Database File", "", "Image Files (*.sqlite)");
-// 
-//   if(fileName.toStdString().empty())
-//     {
-//     std::cout << "Filename was empty." << std::endl;
-//     return;
-//     }
+  QString fileName = QFileDialog::getSaveFileName(this, "Database File", "", "Image Files (*.sqlite)");
 
-  QString fileName = "test.sqlite";
+  if(fileName.toStdString().empty())
+    {
+    std::cout << "Filename was empty." << std::endl;
+    return;
+    }
 
   if(QFile::exists(fileName))
     {
-    std::cerr << "File already exists - Open the company instead." << std::endl;
+    QMessageBox::warning(this, "Time Tracker Configuration",
+                               "This company database already exists. Please choose a different file.",
+                                QMessageBox::Ok);
     return;
     }
 
@@ -60,7 +61,7 @@ void TimeTrackerConfigurationWidget::on_btnNewCompany_clicked()
     std::cerr << "Could not open database" << std::endl;
     std::cerr << this->CompanyDatabase->lastError().text().toStdString() << std::endl;
     }
-    
+
   QSqlQuery createQuery(*(this->CompanyDatabase));
   bool createSuccess = createQuery.exec("create table CompanyTable "
               "(id integer primary key, "
@@ -98,8 +99,8 @@ void TimeTrackerConfigurationWidget::on_btnNewCompany_clicked()
   bool insertSuccess = insertQuery.exec();
   if(!insertSuccess)
     {
-    std::cerr << "Could not create table!" << std::endl;
-    std::cerr << insertQuery.lastError().text().toStdString() << std::endl;
+    std::cerr << "Could not insert values!" << std::endl;
+    std::cerr << "insertQuery last error: " << insertQuery.lastError().text().toStdString() << std::endl;
     return;
     }
   

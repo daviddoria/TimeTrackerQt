@@ -14,8 +14,8 @@ INCLUDE_DIRECTORIES(${QT_QTSQL_INCLUDE_DIR}) # for QSqlDatabase
 
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})# Let Qt find it's MOCed files
 
-QT4_WRAP_UI(TimeTrackerUISrcs TimeTrackerWidget.ui) #ui files
-QT4_WRAP_CPP(TimeTrackerMOCSrcs TimeTrackerWidget.h) #h files
+QT4_WRAP_UI(TimeTrackerUISrcs EditAssociateWidget.ui TimeTrackerWidget.ui)
+QT4_WRAP_CPP(TimeTrackerMOCSrcs EditAssociateWidget.h TimeTrackerWidget.h)
 
 ADD_EXECUTABLE(TimeTracker TimeTracker.cpp TimeTrackerWidget.cpp
 Associate.cpp
@@ -23,6 +23,7 @@ CommissionedAssociate.cpp
 Company.cpp
 CompanyModel.cpp
 Day.cpp
+EditAssociateWidget.cpp
 ManagerAssociate.cpp
 TimedAssociate.cpp
 ${TimeTrackerUISrcs} ${TimeTrackerMOCSrcs})

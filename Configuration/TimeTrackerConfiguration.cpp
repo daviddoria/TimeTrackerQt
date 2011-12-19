@@ -4,9 +4,9 @@
 
 int main(int argc, char *argv[])
 {
-    QApplication app(argc, argv);
-    TimeTrackerConfigurationWidget form;
+  QApplication app(argc, argv);
+  TimeTrackerConfigurationWidget form;
 
-    form.show();
-    return app.exec();
+  form.show();
+  return app.exec();
 }

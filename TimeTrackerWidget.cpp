@@ -2,20 +2,99 @@
 
 #include <iostream>
 
+#include <QDebug>
+#include <QFileDialog>
+#include <QMessageBox>
 #include <QSqlDatabase>
 #include <QStringList>
 #include <QSqlQuery>
-#include <QDebug>
 #include <QSqlError>
-#include <QVariant>
+#include <QSettings>
 #include <QSqlTableModel>
 #include <QSqlRecord>
+#include <QVariant>
+#include <../../../../Test/Header1.h>
 
-TimeTrackerWidget::TimeTrackerWidget(QWidget *parent) : QMainWindow(parent)
+TimeTrackerWidget::TimeTrackerWidget(QWidget *parent) : QMainWindow(parent), TableModel(NULL)
 {
   setupUi(this);
+
+  // Get the database from the settings. If one has not been opened before, select it.
+  QSettings settings("TimeTracker", "TimeTracker");
+
+  QString databaseFile = settings.value("DatabaseFile").toString();
+
+  // If there is no saved database, open one.
+  if(databaseFile.isEmpty())
+    {
+    QMessageBox::warning(this, "Time Tracker",
+                               QString(QString("There is no saved company database. (This is probably the first time you are running Time Tracker!) Please select a database file.")),
+                               QMessageBox::Ok);
+    databaseFile = QFileDialog::getOpenFileName(this, "Open Database", ".", "Database Files (*.sqlite)");
+    }
+
+  if(!databaseFile.isEmpty() && !QFile::exists(databaseFile))
+    {
+    QMessageBox::warning(this, "Time Tracker",
+                               QString(QString("The saved company database ") + QString(databaseFile.toStdString().c_str()) + QString(" does not exist. Please choose a different file.")),
+                               QMessageBox::Ok);
+    databaseFile = QFileDialog::getOpenFileName(this, "Open Database", ".", "Database Files (*.sqlite)");
+    }
+
+  // If the database file has still not been selected, quit.
+  if(databaseFile.isEmpty())
+    {
+    QMessageBox::warning(this, "Time Tracker",
+                          "You must select a database. Exiting...",
+                          QMessageBox::Ok);
+
+    exit(-1);
+    }
+
+  std::cout << "Using database file: " << databaseFile.toStdString() << std::endl;
   
+  // Save the database
+  settings.setValue("DatabaseFile", databaseFile );
+
+  QSqlDatabase database = QSqlDatabase::addDatabase("QSQLITE");
+  database.setDatabaseName(databaseFile);
+  if(!database.open())
+    {
+    std::cerr << "Could not open database" << std::endl;
+    std::cerr << "Last error: " << database.lastError().text().toStdString() << std::endl;
+    }
+    
+  //QSqlQuery selectQuery;
+  //selectQuery.prepare("SELECT AssociateName FROM AssociateTable");
+
+  QSqlQuery selectQuery("SELECT AssociateName FROM AssociateTable");
+  
+  bool selectSuccess = selectQuery.exec();
+  if(!selectSuccess)
+    {
+    std::cerr << "Error selecting associates!" << std::endl;
+    std::cerr << "Last error: " << selectQuery.lastError().text().toStdString() << std::endl;
+    return;
+    }
+
+  this->TableModel = new QSqlTableModel;
+  this->TableModel->setTable("AssociateTable");
+  this->TableModel->select();
+
+  this->listView->setModel(this->TableModel);
+
+  this->listView->setModelColumn(1);
 }
+
+TimeTrackerWidget::~TimeTrackerWidget()
+{
+  if(TableModel)
+    {
+    delete TableModel;
+    TableModel = NULL;
+    }
+}
+
 /*
 void MyForm::pushButton_clicked()
 {
